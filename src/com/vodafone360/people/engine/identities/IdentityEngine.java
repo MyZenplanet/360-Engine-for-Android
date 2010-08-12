@@ -49,6 +49,7 @@ import com.vodafone360.people.service.io.ResponseQueue.DecodedResponse;
 import com.vodafone360.people.service.io.api.Identities;
 import com.vodafone360.people.service.io.rpg.PushMessageTypes;
 import com.vodafone360.people.service.transport.ConnectionManager;
+import com.vodafone360.people.service.transport.http.HttpConnectionThread;
 import com.vodafone360.people.service.transport.tcp.ITcpConnectionListener;
 import com.vodafone360.people.utils.LogUtils;
 import com.vodafone360.people.utils.ThirdPartyAccount;
@@ -170,6 +171,8 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
 	 **/
 	private DeleteIdentityRequest identityToBeDeleted;
 
+	/** Used only by JUnit to set test status. */
+    public boolean mJUnitTestMode = false;
     /**
      * Constructor
      * 
@@ -807,6 +810,17 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
         if (uiAgent != null && uiAgent.isSubscribed()) {
             uiAgent.sendUnsolicitedUiEvent(request, b);
         } // end: send update to 3rd party identities ui if it is up
+        
+        //JUnit instrumentation module waits for UI event to set test status
+        //So even in Comms processing mode UI event is sent while testing
+        if (mJUnitTestMode){
+	        ServiceStatus status = ServiceStatus.SUCCESS;
+	        Bundle temp = new Bundle();
+	        temp.putParcelableArrayList("data", idBundle);
+	        mEventCallback.onUiEvent(ServiceUiRequest.UI_REQUEST_COMPLETE, request.ordinal(), status
+	                .ordinal(), temp.clone());
+        }
+        
     }
     
     /**
@@ -976,6 +990,14 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
         LogUtils.logV("ApplicationCache."
                 + "isFacebookInThirdPartyAccountList() Hyves not found in list");
         return false;
+    }
+
+    /**
+     * Sets the test mode flag.
+     * Used to send UI events while JUnit test running
+     */
+    public void setTestMode(boolean mode){
+    	mJUnitTestMode = mode;
     }
 
 }
