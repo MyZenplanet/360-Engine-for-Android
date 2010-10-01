@@ -236,7 +236,10 @@ public class EngineTestFramework implements IEngineEventCallback, IPeopleTestFra
             mActive = false;
             mObjectLock.notify();
         }
-        mConnThread.stopThread();
+        if(mConnThread != null)
+        {
+        	mConnThread.stopThread();
+        }
     }
 
     private void onEngineException(Exception e) {
