@@ -199,8 +199,10 @@ public class ActivitiesEngine extends BaseEngine implements IContactSyncObserver
         mEngineId = EngineId.ACTIVITIES_ENGINE;
         mDb = db;
         mContext = context;
+        if (!mJUnitTestMode){
         if (isContactSyncReady()) {
             EngineManager.getInstance().getContactSyncEngine().addEventCallback(this);
+        }
         }
         mTimelineEventWatcher = new TimelineEventWatcher(mContext, this);
     }
@@ -211,10 +213,12 @@ public class ActivitiesEngine extends BaseEngine implements IContactSyncObserver
      */
     @Override
     public long getNextRunTime() {
+    	if (!mJUnitTestMode){
         if (!isContactSyncReady()
                 || !EngineManager.getInstance().getContactSyncEngine().isFirstTimeSyncComplete()) {
             return -1;
         }
+    	}
         if (mNextCleanup < System.currentTimeMillis()) {
             return 0;
         }
@@ -230,24 +234,6 @@ public class ActivitiesEngine extends BaseEngine implements IContactSyncObserver
         return getCurrentTimeout();
 
     }
-    /** Used only by JUnit
-     * Return next run time for ActivitiesEngine. Determined by whether we have
-     * a request we wish to issue, or there is a response that needs processing.
-     */    
-    public long getNextRunTimeForTest() {
-        
-         if (isCommsResponseOutstanding()) {
-             return 0;
-         }
-         if (isUiRequestOutstanding()) {
-             return 0;
-         }
-         if (mRequestActivitiesRequired && checkConnectivity()) {
-             return 0;
-         }
-         return getCurrentTimeout();
-
-     }
 
     /**
      * onCreate. Instruct the timeline event watcher to start watching for
@@ -265,8 +251,10 @@ public class ActivitiesEngine extends BaseEngine implements IContactSyncObserver
     @Override
     public void onDestroy() {
         mTimelineEventWatcher.stopWatching();
+        if (!mJUnitTestMode){
         if (isContactSyncReady()) {
             EngineManager.getInstance().getLoginEngine().removeListener(this);
+        }
         }
     }
 
