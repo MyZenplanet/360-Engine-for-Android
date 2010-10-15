@@ -196,7 +196,12 @@ public class LoginEngine extends BaseEngine {
      * Determines if the user is currently logged in with a valid session
      */
     private boolean mCurrentLoginState = false;
-
+    
+    /**
+     * To make activation mode changeable.
+     */
+    private boolean mEnableActivation = Settings.ENABLE_ACTIVATION;
+    
     /**
      * Listener interface that can be used by clients to receive login state
      * events from the engine.
@@ -555,10 +560,10 @@ public class LoginEngine extends BaseEngine {
         LogUtils.logD("LoginEngine.processUiRequest() - reqID = " + requestId);
         switch (requestId) {
             case LOGIN:
-                startManualLoginProcess((LoginDetails)data);
+                startManualLoginProcess((LoginDetails) data);
                 break;
             case REGISTRATION:
-                startRegistrationProcessCrypted((RegistrationDetails)data);
+                startRegistrationProcessCrypted((RegistrationDetails) data);
                 break;
             case REMOVE_USER_DATA:
                 startLogout();
@@ -838,7 +843,7 @@ public class LoginEngine extends BaseEngine {
         mLoginDetails.mSubscriberId = mCurrentSubscriberId;
         mDb.modifyCredentialsAndPublicKey(mLoginDetails, mPublicKey);
 
-        if (Settings.ENABLE_ACTIVATION) {
+        if (mEnableActivation) {
             startRequestActivationCode();
         } else {
             startGetSessionManual();
@@ -889,7 +894,7 @@ public class LoginEngine extends BaseEngine {
             completeUiRequest(ServiceStatus.ERROR_COMMS, null);
             return;
         }
-        if (Settings.ENABLE_ACTIVATION) {
+        if (mEnableActivation) {
             newState(State.ACTIVATING_ACCOUNT);
             if (!setReqId(Auth.activate(this, mActivationCode))) {
                 completeUiRequest(ServiceStatus.ERROR_COMMS, null);
@@ -923,7 +928,10 @@ public class LoginEngine extends BaseEngine {
         LogUtils.logD("LoginEngine.startLogout()");
         addUiRemoveUserDataRequest();
         LoginPreferences.clearPreferencesFile(mContext);
-        mUiAgent.sendUnsolicitedUiEvent(ServiceUiRequest.UNSOLICITED_GO_TO_LANDING_PAGE, null);
+        if(mUiAgent != null)
+        {
+        	mUiAgent.sendUnsolicitedUiEvent(ServiceUiRequest.UNSOLICITED_GO_TO_LANDING_PAGE, null);
+        }
     }
 
     /**
@@ -991,7 +999,7 @@ public class LoginEngine extends BaseEngine {
      * 
      * @param value true if registration is completed
      */
-    private void setRegistrationComplete(boolean value) {
+    public void setRegistrationComplete(boolean value) {
         LogUtils.logD("LoginEngine.setRegistrationComplete(" + value + ")");
         if (value != mIsRegistrationComplete) {
             StateTable.setRegistrationComplete(value, mDb.getWritableDatabase());
@@ -1145,7 +1153,7 @@ public class LoginEngine extends BaseEngine {
         LogUtils.logD("LoginEngine.handleSignUpResponse() errorStatus[" + errorStatus.name() + "]");
         if (errorStatus == ServiceStatus.SUCCESS) {
             LogUtils.logD("LoginEngine.handleSignUpResponse() - Registration successful");
-            if (!Settings.ENABLE_ACTIVATION) {
+            if (!mEnableActivation) {
                 startGetSessionManual();
             } else {
                 // Now waiting for SMS...
@@ -1426,5 +1434,14 @@ public class LoginEngine extends BaseEngine {
      */
     public static void setTestSession(AuthSessionHolder session) {
         sActivatedSession = session;
+    }
+    
+    /**
+     * Set/Reset SMS activation mode.
+     * 
+     * @param mode
+     */
+    public void setActivationMode(boolean mode){
+    	mEnableActivation = mode;
     }
 }

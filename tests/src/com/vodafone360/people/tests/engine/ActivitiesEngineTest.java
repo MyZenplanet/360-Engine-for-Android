@@ -31,6 +31,7 @@ import java.util.List;
 
 import android.app.Instrumentation;
 import android.content.ContentValues;
+import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.provider.Contacts;
 import android.test.InstrumentationTestCase;
@@ -38,10 +39,12 @@ import android.test.suitebuilder.annotation.MediumTest;
 import android.util.Log;
 
 import com.vodafone360.people.MainApplication;
+import com.vodafone360.people.database.tables.ContactsTable;
 import com.vodafone360.people.datatypes.ActivityContact;
 import com.vodafone360.people.datatypes.ActivityItem;
 import com.vodafone360.people.datatypes.BaseDataType;
 import com.vodafone360.people.datatypes.Contact;
+import com.vodafone360.people.datatypes.ContactDetail;
 import com.vodafone360.people.datatypes.Identity;
 import com.vodafone360.people.datatypes.PushEvent;
 import com.vodafone360.people.datatypes.ServerError;
@@ -293,6 +296,7 @@ public class ActivitiesEngineTest extends InstrumentationTestCase implements
 
 
     @MediumTest
+    
     public void testPushMessage() {
         boolean testPass = true;
         mState = ActivityTestState.GET_ACTIVITIES_SUCCESS;
@@ -346,6 +350,7 @@ public class ActivitiesEngineTest extends InstrumentationTestCase implements
     @MediumTest
     public void testFetchTimelines()
     {
+    	NetworkAgent.setAgentState(NetworkAgent.AgentState.CONNECTED);
     	mState = ActivityTestState.GET_TIMELINE_EVENT_FROM_SERVER;
     	mEng.addOlderTimelinesRequest();
     	 ServiceStatus status = mEngineTester.waitForEvent();
@@ -358,6 +363,7 @@ public class ActivitiesEngineTest extends InstrumentationTestCase implements
     @MediumTest
     public void testFetchStatuses()
     {
+    	NetworkAgent.setAgentState(NetworkAgent.AgentState.CONNECTED);
     	mState = ActivityTestState.GET_ACTIVITIES_SUCCESS;
     	mEng.addGetOlderStatusesRequest();
     	
@@ -486,17 +492,18 @@ public class ActivitiesEngineTest extends InstrumentationTestCase implements
     }
     
     
-    
-    public void testDiffMMSCharSet()
+    @MediumTest 
+    public void testMMSCharSet()
     {
+    	
     	int charSetList[] = {ANY_CHARSET,US_ASCII,ISO_8859_1,ISO_8859_2,
     			             ISO_8859_3,ISO_8859_4,ISO_8859_5,ISO_8859_6,
     			             ISO_8859_7,ISO_8859_8,ISO_8859_9,SHIFT_JIS,
     			             UTF_8,BIG5,UCS2,UTF_16};
     	
     	for (int i = 0; i < charSetList.length;i++) {
-    		
-    		insertMMS(INBOX,charSetList[i],"3444");
+    		NetworkAgent.setAgentState(NetworkAgent.AgentState.CONNECTED);
+    		insertMMS(INBOX,charSetList[i],"3444123");
         	mEng.addUiRequestToQueue(ServiceUiRequest.UPDATE_SMS, null);
         	
         	ServiceStatus status = mEngineTester.waitForEvent();
@@ -560,8 +567,18 @@ public class ActivitiesEngineTest extends InstrumentationTestCase implements
      
         
     }
-
-   
+    
+    @MediumTest
+    public void testPublicGetterMethods()
+    {
+    	// This test case is not very useful. Just calls the methods but don't do much
+    	mEng.onLoginStateChanged(false);
+    	mEng.isTimelinesUpdated();
+    	mEng.setTimelinesUpdated(true);
+    	mEng.onProgressEvent(null, 0);
+    	mEng.onContactSyncStateChange(null, null, null);
+    	
+    }
 
     @Override
     public void reportBackToEngine(int reqId, EngineId engine) {
@@ -731,7 +748,7 @@ public class ActivitiesEngineTest extends InstrumentationTestCase implements
     
     	values.put(MSG_BOX, msg_box);
     	
-    	Uri uri = mApplication.getContentResolver().insert(Uri.parse("content://mms"),values);
+    	mApplication.getContentResolver().insert(Uri.parse("content://mms"),values);
     	
     }
     
@@ -775,9 +792,9 @@ public class ActivitiesEngineTest extends InstrumentationTestCase implements
         peopleValues.put(Contacts.People.NAME,mDummyContactName );
         peopleValues.put(Contacts.Phones.NUMBER, mDummyContactNumber);
         peopleValues.put(Contacts.Phones.TYPE, Contacts.Phones.TYPE_MOBILE);
-        Uri personUri1 = mApplication.getContentResolver().insert(Contacts.People.CONTENT_URI, peopleValues);
+        mApplication.getContentResolver().insert(Contacts.People.CONTENT_URI, peopleValues);
 
-     
+
     }
     
     private int deleteContact()

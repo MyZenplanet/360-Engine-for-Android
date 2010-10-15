@@ -234,6 +234,24 @@ public class ActivitiesEngine extends BaseEngine implements IContactSyncObserver
         return getCurrentTimeout();
 
     }
+    /** Used only by JUnit
+     * Return next run time for ActivitiesEngine. Determined by whether we have
+     * a request we wish to issue, or there is a response that needs processing.
+     */    
+    public long getNextRunTimeForTest() {
+        
+         if (isCommsResponseOutstanding()) {
+             return 0;
+         }
+         if (isUiRequestOutstanding()) {
+             return 0;
+         }
+         if (mRequestActivitiesRequired && checkConnectivity()) {
+             return 0;
+         }
+         return getCurrentTimeout();
+
+     }
 
     /**
      * onCreate. Instruct the timeline event watcher to start watching for

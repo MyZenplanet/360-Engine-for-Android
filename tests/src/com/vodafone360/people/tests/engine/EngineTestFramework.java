@@ -154,7 +154,7 @@ public class EngineTestFramework implements IEngineEventCallback, IPeopleTestFra
 
     public ServiceStatus waitForEvent(int ts) {
         Log.d("TAG", "EngineTestFramework waitForEvent");
-        NetworkAgent.setAgentState(NetworkAgent.AgentState.CONNECTED);
+        //NetworkAgent.setAgentState(NetworkAgent.AgentState.CONNECTED);
         kickWorkerThread();
 
         long endTime = System.nanoTime() + (((long)ts) * 1000000);

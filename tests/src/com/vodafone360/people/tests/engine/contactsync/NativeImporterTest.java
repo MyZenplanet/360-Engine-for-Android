@@ -803,8 +803,6 @@ public class NativeImporterTest extends TestCase {
      */
     public static class NativeContactsApiMockup extends NativeContactsApi {
         
-    	
-    
         /**
          * A Hashtable of contacts where the key is the contact id.
          */
@@ -1119,6 +1117,8 @@ public class NativeImporterTest extends TestCase {
             // TODO Auto-generated method stub
             
         }
+        
+        
     }
     
     /**
